@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AstroPulse - NASA Artemis Astronaut Health Telemetry</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="stars-bg"></div>
+  <div class="hud-scanline"></div>
+
+  <!-- Header Section -->
+  <header class="nasa-header">
+    <div class="header-left">
+      <div class="nasa-insignia">
+        <span class="agency-title">NASA</span>
+        <span class="mission-tag">ARTEMIS VII // BIO-TELEMETRY</span>
+      </div>
+      <div class="telemetry-feed-badge">
+        <span class="live-dot pulse"></span>
+        <span class="feed-status">DSN LINK: ACTIVE</span>
+        <span class="latency" id="dsn-latency">LATENCY: 1.28s</span>
+      </div>
+    </div>
+
+    <!-- Mission Clock -->
+    <div class="header-center">
+      <div class="mission-clock-box">
+        <div class="clock-label">MISSION ELAPSED TIME (MET)</div>
+        <div class="clock-display" id="met-clock">DAY 142 : 08:34:12</div>
+        <div class="sub-clock">EARTH UTC: <span id="earth-utc">2026-10-03 12:34:12</span></div>
+      </div>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="header-right">
+      <button class="hud-btn" id="audio-toggle-btn" title="Toggle Audio Alarms">
+        <span class="btn-icon" id="audio-icon">🔊</span>
+        <span id="audio-text">AUDIO ON</span>
+      </button>
+      <button class="hud-btn highlight" id="screenshot-btn" title="Prepare Screenshot View">
+        <span class="btn-icon">📷</span>
+        <span>SNAP VIEW</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Emergency / Status Alert Banner -->
+  <div class="alert-banner" id="global-alert-banner" role="alert">
+    <div class="alert-content">
+      <div class="alert-icon-wrap" id="alert-icon-symbol">⚠️</div>
+      <div class="alert-text-group">
+        <div class="alert-title" id="alert-title">SYSTEM STATUS NOMINAL</div>
+        <div class="alert-desc" id="alert-message">All astronaut biometric parameters within safe operational thresholds.</div>
+      </div>
+      <div class="alert-actions">
+        <span class="alert-timestamp" id="alert-time">08:34:12 MET</span>
+        <button class="ack-btn" id="ack-alert-btn">ACKNOWLEDGE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard Container -->
+  <main class="dashboard-grid">
+
+    <!-- Left Column: Astronaut Profile & Mission Overview -->
+    <section class="panel profile-panel">
+      <div class="panel-header">
+        <span class="header-title">CREW BIOMETRICS</span>
+        <span class="panel-id">ID: ART-07-CMDR</span>
+      </div>
+
+      <div class="astronaut-card">
+        <div class="avatar-container">
+          <div class="avatar-ring" id="avatar-status-ring">
+            <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80" alt="Commander Elena Rostova" class="astronaut-photo" id="astronaut-img">
+          </div>
+          <div class="status-indicator-badge" id="overall-status-badge">
+            <span class="status-pulse-dot"></span>
+            <span id="status-text">NORMAL</span>
+          </div>
+        </div>
+
+        <div class="astronaut-info">
+          <h2 class="astronaut-name">Dr. Elena Rostova</h2>
+          <div class="astronaut-role">MISSION COMMANDER // ASTROBIOLOGIST</div>
+          <div class="astronaut-meta">
+            <div class="meta-item">
+              <span class="meta-label">SUIT</span>
+              <span class="meta-val">xEMU MK-IV</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">HABITAT</span>
+              <span class="meta-val">GATEWAY HALO</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">BLOOD TYPE</span>
+              <span class="meta-val">O-POS</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">SUIT LINK</span>
+              <span class="meta-val status-green">SYNCED (99.8%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Status Threshold Guide -->
+      <div class="threshold-reference">
+        <div class="ref-title">VITAL THRESHOLD MATRIX</div>
+        <div class="ref-row">
+          <span class="ref-name">Oxygen (SpO₂)</span>
+          <span class="ref-badge green">&gt; 95% Nom</span>
+          <span class="ref-badge yellow">90-94% Warn</span>
+          <span class="ref-badge red">&lt; 90% Crit</span>
+        </div>
+        <div class="ref-row">
+          <span class="ref-name">Heart Rate</span>
+          <span class="ref-badge green">60-100 Nom</span>
+          <span class="ref-badge yellow">101-120 Warn</span>
+          <span class="ref-badge red">&gt; 120 / &lt; 45 Crit</span>
+        </div>
+        <div class="ref-row">
+          <span class="ref-name">Body Temp</span>
+          <span class="ref-badge green">36.5-37.5°C</span>
+          <span class="ref-badge yellow">37.6-38.4°C</span>
+          <span class="ref-badge red">&gt; 38.5 / &lt; 35.5°C</span>
+        </div>
+      </div>
+
+      <!-- Simulation Scenario Selector for Fast Testing / Screenshot Capture -->
+      <div class="scenario-panel">
+        <div class="scenario-title">TEST SCENARIOS (FOR SCREENSHOTS)</div>
+        <div class="scenario-buttons">
+          <button class="scenario-btn active" id="scenario-nominal">
+            <span class="sc-dot green"></span>
+            <span>1. Nominal (Normal)</span>
+          </button>
+          <button class="scenario-btn" id="scenario-hypoxia">
+            <span class="sc-dot red"></span>
+            <span>2. Hypoxia Emergency (SpO₂ &lt; 90%)</span>
+          </button>
+          <button class="scenario-btn" id="scenario-cardio">
+            <span class="sc-dot yellow"></span>
+            <span>3. High Exertion EVA (Heart Alert)</span>
+          </button>
+          <button class="scenario-btn" id="scenario-hypothermia">
+            <span class="sc-dot red"></span>
+            <span>4. Suit Thermoreg Failure</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Center/Right: 5 Real-time Health Telemetry Cards -->
+    <section class="telemetry-section">
+
+      <!-- Vital 1: Heart Rate with Live ECG Waveform -->
+      <div class="vital-card" id="card-heart-rate">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-icon heart-pulse">❤️</span>
+            <span class="card-label">HEART RATE</span>
+          </div>
+          <div class="card-status-pill" id="hr-status-pill">NOMINAL</div>
+        </div>
+        <div class="vital-main">
+          <div class="vital-value-display">
+            <span class="vital-number" id="hr-value">72</span>
+            <span class="vital-unit">BPM</span>
+          </div>
+          <div class="vital-trend" id="hr-trend">
+            <span class="trend-icon">↔</span>
+            <span class="trend-text">STEADY</span>
+          </div>
+        </div>
+        <!-- ECG Canvas -->
+        <div class="canvas-wrap">
+          <canvas id="ecg-canvas" width="400" height="90"></canvas>
+          <div class="canvas-grid-overlay"></div>
+        </div>
+        <div class="card-footer">
+          <span>SAFE RANGE: 60 - 100 BPM</span>
+          <span class="stat-aux" id="hr-aux">HRV: 68 ms</span>
+        </div>
+      </div>
+
+      <!-- Vital 2: Blood Oxygen (SpO2) -->
+      <div class="vital-card" id="card-oxygen">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-icon">🫁</span>
+            <span class="card-label">BLOOD OXYGEN (SpO₂)</span>
+          </div>
+          <div class="card-status-pill" id="spo2-status-pill">NOMINAL</div>
+        </div>
+        <div class="vital-main">
+          <div class="vital-value-display">
+            <span class="vital-number" id="spo2-value">98.4</span>
+            <span class="vital-unit">%</span>
+          </div>
+          <div class="vital-trend" id="spo2-trend">
+            <span class="trend-icon">↑</span>
+            <span class="trend-text">OPTIMAL</span>
+          </div>
+        </div>
+        <!-- Circular/Bar Gauge -->
+        <div class="gauge-container">
+          <div class="gauge-bar-bg">
+            <div class="gauge-bar-fill" id="spo2-gauge" style="width: 98.4%;"></div>
+          </div>
+          <div class="gauge-scale">
+            <span>85% (Crit)</span>
+            <span>90% (Warn)</span>
+            <span>95% (Safe)</span>
+            <span>100%</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span id="spo2-footer-text">ALERT TRIGGER: &lt; 90% (CRITICAL)</span>
+          <span class="stat-aux" id="spo2-aux">pO₂: 21.2 kPa</span>
+        </div>
+      </div>
+
+      <!-- Vital 3: Body Temperature -->
+      <div class="vital-card" id="card-temperature">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-icon">🌡️</span>
+            <span class="card-label">CORE TEMPERATURE</span>
+          </div>
+          <div class="card-status-pill" id="temp-status-pill">NOMINAL</div>
+        </div>
+        <div class="vital-main">
+          <div class="vital-value-display">
+            <span class="vital-number" id="temp-value">36.8</span>
+            <span class="vital-unit" id="temp-unit">°C</span>
+          </div>
+          <div class="vital-trend" id="temp-trend">
+            <span class="trend-icon">↔</span>
+            <span class="trend-text">THERMAL STABLE</span>
+          </div>
+        </div>
+        <!-- Temperature Visual Bar -->
+        <div class="gauge-container">
+          <div class="gauge-bar-bg">
+            <div class="gauge-bar-fill temp-gradient" id="temp-gauge" style="width: 50%;"></div>
+          </div>
+          <div class="gauge-scale">
+            <span>35°C</span>
+            <span>36.5°C</span>
+            <span>37.5°C</span>
+            <span>39°C</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span>SAFE: 36.5°C - 37.5°C</span>
+          <span class="unit-toggle" id="unit-toggle-btn">[ SWITCH TO °F ]</span>
+        </div>
+      </div>
+
+      <!-- Vital 4: Sleep Duration & Circadian Quality -->
+      <div class="vital-card" id="card-sleep">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-icon">🌙</span>
+            <span class="card-label">SLEEP DURATION (24h)</span>
+          </div>
+          <div class="card-status-pill status-nominal" id="sleep-status-pill">NOMINAL</div>
+        </div>
+        <div class="vital-main">
+          <div class="vital-value-display">
+            <span class="vital-number" id="sleep-value">7.6</span>
+            <span class="vital-unit">HRS</span>
+          </div>
+          <div class="vital-trend" id="sleep-trend">
+            <span class="trend-icon">✓</span>
+            <span class="trend-text">RESTED</span>
+          </div>
+        </div>
+        <div class="sleep-breakdown">
+          <div class="sleep-segment deep">
+            <div class="seg-bar" style="width: 28%;"></div>
+            <span class="seg-label">DEEP: 2.1h</span>
+          </div>
+          <div class="sleep-segment rem">
+            <div class="seg-bar" style="width: 32%;"></div>
+            <span class="seg-label">REM: 2.4h</span>
+          </div>
+          <div class="sleep-segment light">
+            <div class="seg-bar" style="width: 40%;"></div>
+            <span class="seg-label">LIGHT: 3.1h</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span>CIRCADIAN CYCLE: 24.6h SOL</span>
+          <span class="stat-aux" id="sleep-aux">EFFICIENCY: 92%</span>
+        </div>
+      </div>
+
+      <!-- Vital 5: Exercise & Countermeasure Time -->
+      <div class="vital-card" id="card-exercise">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-icon">⚡</span>
+            <span class="card-label">DAILY EXERCISE TIME</span>
+          </div>
+          <div class="card-status-pill" id="exercise-status-pill">IN PROGRESS</div>
+        </div>
+        <div class="vital-main">
+          <div class="vital-value-display">
+            <span class="vital-number" id="exercise-value">94</span>
+            <span class="vital-unit">MIN / 120</span>
+          </div>
+          <div class="vital-trend" id="exercise-trend">
+            <span class="trend-icon">↑</span>
+            <span class="trend-text">ACTIVE REGIMEN</span>
+          </div>
+        </div>
+        <!-- Progress bar towards 120min countermeasure goal -->
+        <div class="gauge-container">
+          <div class="gauge-bar-bg">
+            <div class="gauge-bar-fill exercise-fill" id="exercise-gauge" style="width: 78.3%;"></div>
+          </div>
+          <div class="gauge-scale">
+            <span>0m</span>
+            <span>60m (Cardio)</span>
+            <span>90m</span>
+            <span>120m (Goal)</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span>ARED &amp; T2 TREADMILL</span>
+          <span class="stat-aux" id="exercise-aux">CALORIES: 640 kcal</span>
+        </div>
+      </div>
+
+      <!-- Environmental / Life Support Card -->
+      <div class="vital-card" id="card-suit-env">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-icon">🛡️</span>
+            <span class="card-label">SUIT &amp; RESPIRATION</span>
+          </div>
+          <div class="card-status-pill">NORMAL</div>
+        </div>
+        <div class="vital-main mini-grid">
+          <div class="mini-stat">
+            <div class="mini-label">RESPIRATION</div>
+            <div class="mini-val"><span id="resp-value">14</span> <small>BPM</small></div>
+            <div class="mini-sub">Nominal: 12-18</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-label">SUIT PRESSURE</div>
+            <div class="mini-val"><span id="pressure-value">101.3</span> <small>kPa</small></div>
+            <div class="mini-sub">1 atm Standard</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-label">CO₂ FRACTION</div>
+            <div class="mini-val"><span id="co2-value">0.28</span> <small>%</small></div>
+            <div class="mini-sub">Safe: &lt; 0.5%</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span>SUIT CO2 SCRUBBER: ACTIVE</span>
+          <span class="stat-aux">FAN: 100%</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Bottom Full-Width Bar: Live Telemetry Event Stream & Telemetry Controls -->
+    <section class="panel log-panel">
+      <div class="panel-header">
+        <span class="header-title">BIOMEDICAL TELEMETRY EVENT LOG</span>
+        <div class="feed-controls">
+          <label class="control-label">SIM SPEED:</label>
+          <button class="speed-btn active" data-speed="1">1X</button>
+          <button class="speed-btn" data-speed="2">2X</button>
+          <button class="speed-btn" data-speed="5">5X</button>
+          <button class="toggle-stream-btn" id="stream-toggle-btn">PAUSE</button>
+          <button class="clear-log-btn" id="clear-log-btn">CLEAR</button>
+        </div>
+      </div>
+      <div class="log-stream-window" id="telemetry-log-stream">
+        <!-- Logs dynamically appended here -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer Information -->
+  <footer class="nasa-footer">
+    <div class="footer-left">
+      <span>NASA Space Apps Pre-Selection Challenge // Mission Biomedical Telemetry System</span>
+    </div>
+    <div class="footer-center">
+      <span>AUTONOMOUS HEALTH MONITOR // VERSION 3.2.0-ORION</span>
+    </div>
+    <div class="footer-right">
+      <span>#evn-sp-webdev // 100 KARMA SUBMISSION</span>
+    </div>
+  </footer>
+
+  <!-- Modal View for Snapshot capture -->
+  <div class="modal-overlay" id="screenshot-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>SUBMISSION SCREENSHOT ASSISTANT</h3>
+        <button class="modal-close" id="close-modal-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>For your <strong>NASA Space Apps Pre-selection Submission</strong>, you need <strong>2 screenshots</strong> showing the dashboard.</p>
+        <div class="step-guide">
+          <div class="guide-box">
+            <h4>📸 Screenshot 1: Nominal Mission State</h4>
+            <p>Select the <strong>"1. Nominal (Normal)"</strong> scenario button on the dashboard. Astronaut status shows green <strong>NORMAL</strong>.</p>
+          </div>
+          <div class="guide-box">
+            <h4>🚨 Screenshot 2: Critical Alert State</h4>
+            <p>Select <strong>"2. Hypoxia Emergency (SpO₂ &lt; 90%)"</strong>. The dashboard triggers flashing red <strong>CRITICAL ALERT</strong> with audible siren and event log.</p>
+          </div>
+        </div>
+        <p class="tip-text">Tip: Use <code>Windows Key + Shift + S</code> (Snipping Tool) or <code>Alt + PrtScn</code> to capture your screen.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="hud-btn highlight" id="apply-scenario-1">Setup Screenshot 1 (Normal)</button>
+        <button class="hud-btn red-btn" id="apply-scenario-2">Setup Screenshot 2 (Critical Alert)</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
